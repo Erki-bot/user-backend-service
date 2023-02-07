@@ -3,7 +3,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "articles#index"
-  post "/wallet", to: "wallet#create"
-  get "/wallet", to: "wallet#gets"
+  post "/wallet", to: "wallet#create_account"
+  get "/wallet", to: "wallet#get_account"
 
 end

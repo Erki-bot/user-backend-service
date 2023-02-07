@@ -9,7 +9,7 @@ class WalletController < ApplicationController
     @api_url = 'http://localhost:8081'
   end
 
-  def create
+  def create_account
     uid = params['uid']
     if uid.nil?
       render json: { error: 'missing uid' }, status: 400
@@ -18,21 +18,20 @@ class WalletController < ApplicationController
     else
       secret = secretGenerator 32
       response = HTTPX.post("#{api_url}/wallet", json: { uid: uid, secret: secret })
-      # puts "response -----------------#{JSON.parse(response.body.to_s)}"
-      # puts "error -----------------#{(response.error).class}"
-      case response.status
-      when 401
-        render json: JSON.parse(response.body.to_s), status: 400
-      when 201
-        render json: { address: JSON.parse(response.body)['address'], password: secret }, status: 200
-        # render json: JSON.parse(response.body.to_s), status: 200
+      if response.status.is_a? Integer
+        case response.status
+        when 201
+          render json: { address: JSON.parse(response.body)['address'], password: secret }, status: 200
+        else
+          render json: JSON.parse(response.body), status: response.status
+        end
       else
-        render json: { error: 'unknown error' }, status: 400
+        render json: { error: 'cannot connect to the server' }, status: 500
       end
     end
   end
 
-  def gets
+  def get_account
     uid = params['uid']
     secret = params['secret']
     # Verifying if uid and secret are present
@@ -54,13 +53,10 @@ class WalletController < ApplicationController
       end
     else
       response = HTTPX.get("#{api_url}/wallet", json: { uid: uid, secret: secret })
-      case response.status
-      when 200
-        render json: JSON.parse(response.body)
+      if response.status.is_a? Integer
+        render json: JSON.parse(response.body), status: response.status
       else
-        # render html:"error"
-        render json: JSON.parse(response), status: 404
-        # render json: JSON.parse(response.body), status: 404
+        render json: { error: 'cannot connect to the server' }, status: 500
       end
     end
   end
